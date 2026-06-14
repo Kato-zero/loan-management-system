@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LoanFlow — Loan Management</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#0c0f1a;
+  --surface:#111827;
+  --surface2:#1a2236;
+  --surface3:#1e2d45;
+  --border:#1f2f48;
+  --border2:#2a3f5f;
+  --text:#e2e8f0;
+  --muted:#64748b;
+  --muted2:#94a3b8;
+  --accent:#38bdf8;
+  --accent-dim:#0ea5e9;
+  --accent-bg:rgba(56,189,248,0.08);
+  --green:#22c55e;
+  --green-bg:rgba(34,197,94,0.1);
+  --red:#f87171;
+  --red-bg:rgba(248,113,113,0.1);
+  --amber:#fbbf24;
+  --amber-bg:rgba(251,191,36,0.1);
+  --purple:#a78bfa;
+  --purple-bg:rgba(167,139,250,0.1);
+}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;}
+.layout{display:grid;grid-template-columns:240px 1fr;min-height:100vh;}
+
+/* Sidebar */
+.sidebar{background:var(--surface);border-right:1px solid var(--border);padding:24px 0;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;}
+.logo{padding:0 20px 28px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);}
+.logo-icon{width:32px;height:32px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;}
+.logo-icon svg{width:18px;height:18px;fill:none;stroke:#000;stroke-width:2.5;}
+.logo-text{font-size:18px;font-weight:700;color:var(--text);}
+.logo-sub{font-size:11px;color:var(--muted);font-weight:400;letter-spacing:0.5px;}
+.nav{padding:16px 12px;flex:1;}
+.nav-section{font-size:10px;font-weight:600;color:var(--muted);letter-spacing:1px;text-transform:uppercase;padding:0 8px;margin:16px 0 6px;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;color:var(--muted2);cursor:pointer;transition:all 0.15s;margin-bottom:2px;border:none;background:none;width:100%;text-align:left;font-size:13.5px;}
+.nav-item svg{width:18px;height:18px;flex-shrink:0;opacity:0.7;}
+.nav-item:hover{background:var(--surface2);color:var(--text);}
+.nav-item.active{background:var(--accent-bg);color:var(--accent);font-weight:500;}
+.nav-item.active svg{opacity:1;}
+.sidebar-footer{padding:16px 20px;border-top:1px solid var(--border);}
+.user-chip{display:flex;align-items:center;gap:10px;}
+.avatar{width:32px;height:32px;border-radius:50%;background:var(--accent-bg);border:1.5px solid var(--accent);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--accent);}
+.user-info{flex:1;}
+.user-name{font-size:13px;font-weight:500;}
+.user-role{font-size:11px;color:var(--muted);}
+
+/* Main */
+.main{padding:0;overflow:hidden;}
+.topbar{padding:20px 30px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface);position:sticky;top:0;z-index:10;}
+.page-title{font-size:20px;font-weight:700;}
+.page-sub{font-size:12px;color:var(--muted);margin-top:2px;}
+.topbar-right{display:flex;align-items:center;gap:10px;}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 16px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;transition:all 0.15s;border:none;}
+.btn-primary{background:var(--accent);color:#000;}
+.btn-primary:hover{background:#7dd3fc;}
+.btn-ghost{background:var(--surface2);color:var(--muted2);border:1px solid var(--border);}
+.btn-ghost:hover{color:var(--text);background:var(--surface3);}
+.btn-danger{background:var(--red-bg);color:var(--red);border:1px solid rgba(248,113,113,0.2);}
+.btn-danger:hover{background:rgba(248,113,113,0.2);}
+.btn-success{background:var(--green-bg);color:var(--green);border:1px solid rgba(34,197,94,0.2);}
+.btn-success:hover{background:rgba(34,197,94,0.2);}
+.btn svg{width:15px;height:15px;}
+
+/* Content panels */
+.content{padding:28px 30px;}
+.panel{display:none;}
+.panel.active{display:block;}
+
+/* Stats grid */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px;}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 20px;}
+.stat-label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.stat-label svg{width:14px;height:14px;}
+.stat-value{font-size:26px;font-weight:700;letter-spacing:-0.5px;}
+.stat-change{font-size:11px;margin-top:4px;}
+.stat-change.up{color:var(--green);}
+.stat-change.down{color:var(--red);}
+.c-accent{color:var(--accent);}
+.c-green{color:var(--green);}
+.c-amber{color:var(--amber);}
+.c-red{color:var(--red);}
+
+/* Cards */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.card-header{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.card-title{font-size:14px;font-weight:600;}
+.card-body{padding:20px;}
+
+/* Form */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.form-group{display:flex;flex-direction:column;gap:6px;}
+.form-group.full{grid-column:1/-1;}
+label{font-size:12px;font-weight:500;color:var(--muted2);}
+input,select,textarea{background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:10px 12px;color:var(--text);font-size:13.5px;width:100%;transition:border 0.15s;font-family:inherit;}
+input::placeholder{color:var(--muted);}
+input:focus,select:focus{outline:none;border-color:var(--accent);background:var(--surface3);}
+select option{background:var(--surface);}
+.form-footer{margin-top:20px;display:flex;gap:10px;align-items:center;}
+.input-prefix{position:relative;}
+.input-prefix input{padding-left:30px;}
+.input-prefix input.suffix-input{padding-left:12px;padding-right:30px;}
+.input-prefix span{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:13px;pointer-events:none;}
+
+/* Loan summary */
+.loan-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px;padding-top:16px;border-top:1px solid var(--border);}
+.summary-item{text-align:center;}
+.summary-label{font-size:11px;color:var(--muted);margin-bottom:4px;}
+.summary-val{font-size:18px;font-weight:700;}
+
+/* Table */
+.table-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;}
+thead th{padding:12px 16px;text-align:left;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid var(--border);}
+tbody tr{border-bottom:1px solid var(--border);transition:background 0.1s;}
+tbody tr:last-child{border-bottom:none;}
+tbody tr:hover{background:var(--surface2);}
+td{padding:14px 16px;font-size:13.5px;}
+.td-name{font-weight:500;}
+.td-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+
+/* Badges */
+.badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;}
+.badge-active{background:var(--green-bg);color:var(--green);}
+.badge-partial{background:var(--amber-bg);color:var(--amber);}
+.badge-paid{background:var(--accent-bg);color:var(--accent);}
+.badge-overdue{background:var(--red-bg);color:var(--red);}
+.badge::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor;}
+
+/* Progress bar */
+.progress-wrap{width:120px;}
+.progress-bg{height:4px;background:var(--surface3);border-radius:2px;overflow:hidden;}
+.progress-fill{height:100%;border-radius:2px;background:var(--accent);}
+.progress-text{font-size:10px;color:var(--muted);margin-top:3px;text-align:right;}
+
+/* Payment modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:100;align-items:center;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px;width:420px;max-width:90vw;}
+.modal-title{font-size:16px;font-weight:700;margin-bottom:6px;}
+.modal-sub{font-size:13px;color:var(--muted);margin-bottom:20px;}
+.modal-footer{display:flex;gap:10px;margin-top:20px;justify-content:flex-end;}
+
+/* Payment history */
+.payment-list{display:flex;flex-direction:column;gap:10px;}
+.payment-item{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);}
+.payment-amount{font-weight:600;color:var(--green);}
+.payment-date{font-size:11px;color:var(--muted);}
+
+/* Alert */
+.alert{padding:12px 16px;border-radius:8px;font-size:13px;margin-bottom:16px;display:none;}
+.alert-error{background:var(--red-bg);color:var(--red);border:1px solid rgba(248,113,113,0.2);}
+.alert-success{background:var(--green-bg);color:var(--green);border:1px solid rgba(34,197,94,0.2);}
+
+/* Search */
+.search-bar{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+.search-input{flex:1;position:relative;}
+.search-input input{padding-left:36px;}
+.search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);}
+.search-icon svg{width:15px;height:15px;}
+
+/* Empty state */
+.empty{text-align:center;padding:48px 20px;color:var(--muted);}
+.empty svg{width:40px;height:40px;margin:0 auto 12px;opacity:0.3;}
+.empty p{font-size:14px;}
+.empty small{font-size:12px;display:block;margin-top:4px;}
+
+/* Reports */
+.reports-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+.chart-bar-wrap{display:flex;flex-direction:column;gap:10px;}
+.chart-bar-item{display:flex;align-items:center;gap:12px;}
+.chart-bar-label{width:100px;font-size:12px;color:var(--muted2);text-align:right;}
+.chart-bar-bg{flex:1;height:8px;background:var(--surface3);border-radius:4px;overflow:hidden;}
+.chart-bar-fill{height:100%;border-radius:4px;background:var(--accent);}
+.chart-bar-val{width:60px;font-size:12px;font-weight:600;text-align:right;}
+
+/* Tooltip */
+.actions{display:flex;gap:6px;}
+
+/* Tag */
+.tag{font-size:11px;background:var(--surface3);color:var(--muted2);padding:2px 8px;border-radius:4px;}
+
+/* Photo upload */
+.photo-upload-box{position:relative;border:1.5px dashed var(--border2);border-radius:10px;overflow:hidden;cursor:pointer;transition:border-color 0.15s;}
+.photo-upload-box:hover{border-color:var(--accent);}
+.photo-upload-box input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;z-index:2;}
+.photo-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:20px;color:var(--muted);font-size:12px;text-align:center;}
+.photo-placeholder svg{width:28px;height:28px;opacity:0.5;}
+.photo-preview{width:100%;display:none;position:relative;}
+.photo-preview img{width:100%;display:block;border-radius:8px;max-height:180px;object-fit:cover;}
+.photo-preview.contract-preview img{max-height:220px;object-fit:contain;background:var(--surface2);}
+.photo-remove{position:absolute;top:6px;right:6px;background:rgba(0,0,0,0.65);border:none;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:white;z-index:3;}
+.photo-remove svg{width:12px;height:12px;}
+.avatar-wrap{position:relative;cursor:pointer;display:inline-flex;}
+.avatar-wrap input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;z-index:2;}
+.avatar-edit-badge{position:absolute;bottom:-2px;right:-2px;background:var(--accent);border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;border:2px solid var(--surface);z-index:1;}
+.avatar-edit-badge svg{width:8px;height:8px;stroke:#000;fill:none;stroke-width:2.5;}
+.avatar.has-photo{padding:0;overflow:hidden;}
+.avatar.has-photo img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+.detail-photos{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px;}
+.detail-photo-card{background:var(--surface2);border-radius:8px;overflow:hidden;border:1px solid var(--border);}
+.detail-photo-label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;padding:8px 12px;}
+.detail-photo-card img{width:100%;max-height:160px;object-fit:cover;display:block;cursor:zoom-in;}
+.detail-photo-card.contract img{max-height:200px;object-fit:contain;background:var(--surface3);}
+.no-photo{padding:20px;text-align:center;color:var(--muted);font-size:12px;}
+.lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:200;align-items:center;justify-content:center;cursor:zoom-out;}
+.lightbox.open{display:flex;}
+.lightbox img{max-width:92vw;max-height:90vh;border-radius:8px;object-fit:contain;}
+@media(max-width:600px){.detail-photos{grid-template-columns:1fr;}}
+
+/* Notifications */
+.notif-dot{width:8px;height:8px;background:var(--red);border-radius:50%;position:absolute;top:6px;right:6px;}
+.notif-btn{position:relative;}
+
+/* Bottom nav for mobile */
+.bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);z-index:50;padding:0 4px;}
+.bottom-nav-inner{display:flex;justify-content:space-around;}
+.bnav-item{display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 8px;flex:1;background:none;border:none;color:var(--muted2);cursor:pointer;font-size:10px;font-family:inherit;transition:color 0.15s;}
+.bnav-item svg{width:22px;height:22px;}
+.bnav-item.active{color:var(--accent);}
+
+@media(max-width:900px){
+  .layout{grid-template-columns:1fr;}
+  .sidebar{display:none;}
+  .stats{grid-template-columns:1fr 1fr;}
+  .form-grid{grid-template-columns:1fr;}
+  .reports-grid{grid-template-columns:1fr;}
+  .bottom-nav{display:block;}
+  .main{padding-bottom:70px;}
+  .content{padding:16px;}
+  .topbar{padding:14px 16px;}
+  .page-title{font-size:17px;}
+  .stat-value{font-size:20px;}
+  .card-header{flex-wrap:wrap;gap:8px;}
+  .card-header .search-bar{width:100%!important;margin:0;}
+  td,th{padding:10px 10px;}
+  .progress-wrap{width:80px;}
+  .modal{padding:20px;}
+  .loan-summary{grid-template-columns:1fr 1fr 1fr;}
+  .summary-val{font-size:14px;}
+}
+</style>
+</head>
+<body>
+<div class="layout">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 2L2 7v10l10 5 10-5V7L12 2z"/></svg>
+      </div>
+      <div>
+        <div class="logo-text">LoanFlow</div>
+        <div class="logo-sub">Management System</div>
+      </div>
+    </div>
+    <nav class="nav">
+      <div class="nav-section">Main</div>
+      <button class="nav-item active" onclick="showPanel('dashboard')">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Dashboard
+      </button>
+      <button class="nav-item" onclick="showPanel('clients')">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Clients
+      </button>
+      <button class="nav-item" onclick="showPanel('loans')">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10,9 9,9 8,9"/></svg>
+        Loans
+      </button>
+      <button class="nav-item" onclick="showPanel('payments')">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+        Payments
+      </button>
+      <div class="nav-section">Analytics</div>
+      <button class="nav-item" onclick="showPanel('reports')">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        Reports
+      </button>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-chip">
+        <div class="avatar-wrap">
+          <div class="avatar" id="sidebarAvatar">A</div>
+          <div class="avatar-edit-badge"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div>
+          <input type="file" accept="image/*" onchange="uploadProfilePic(this)">
+        </div>
+        <div class="user-info">
+          <div class="user-name">Admin</div>
+          <div class="user-role">Loan Officer</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main content -->
+  <div class="main">
+    <!-- Dashboard -->
+    <div class="panel active" id="panel-dashboard">
+      <div class="topbar">
+        <div>
+          <div class="page-title">Dashboard</div>
+          <div class="page-sub" id="dash-date"></div>
+        </div>
+        <div class="topbar-right">
+          <button class="btn btn-primary" onclick="showPanel('loans');setTimeout(()=>document.getElementById('loanForm').scrollIntoView({behavior:'smooth'}),100)">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            New Loan
+          </button>
+        </div>
+      </div>
+      <div class="content">
+        <div class="stats" id="dashStats"></div>
+        <!-- Recent loans table -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Recent Loans</div>
+            <button class="btn btn-ghost" onclick="showPanel('loans')" style="font-size:12px;padding:7px 12px;">View all →</button>
+          </div>
+          <div class="card-body" style="padding:0;">
+            <div class="table-wrap">
+              <table>
+                <thead><tr>
+                  <th>Client</th><th>Amount</th><th>Interest</th><th>Total Due</th><th>Progress</th><th>Status</th>
+                </tr></thead>
+                <tbody id="dashTable"></tbody>
+              </table>
+              <div class="empty" id="dashEmpty" style="display:none;">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                <p>No loans yet</p><small>Create your first loan to get started</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Clients -->
+    <div class="panel" id="panel-clients">
+      <div class="topbar">
+        <div><div class="page-title">Clients</div><div class="page-sub">All registered borrowers</div></div>
+      </div>
+      <div class="content">
+        <div class="search-bar">
+          <div class="search-input">
+            <div class="search-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
+            <input type="text" placeholder="Search clients..." oninput="renderClients(this.value)">
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-body" style="padding:0;">
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Client</th><th>Loans</th><th>Total Borrowed</th><th>Total Paid</th><th>Outstanding</th><th>Last Loan</th></tr></thead>
+                <tbody id="clientsTable"></tbody>
+              </table>
+              <div class="empty" id="clientsEmpty" style="display:none;">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                <p>No clients yet</p><small>Clients appear when you create loans</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loans -->
+    <div class="panel" id="panel-loans">
+      <div class="topbar">
+        <div><div class="page-title">Loans</div><div class="page-sub">Manage all loan records</div></div>
+      </div>
+      <div class="content">
+        <!-- Create form -->
+        <div class="card" id="loanForm" style="margin-bottom:24px;">
+          <div class="card-header"><div class="card-title">Create New Loan</div></div>
+          <div class="card-body">
+            <div class="alert alert-error" id="formError"></div>
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Client Name</label>
+                <input id="f-client" placeholder="e.g. John Banda" autocomplete="off" list="clientSuggest">
+                <datalist id="clientSuggest"></datalist>
+              </div>
+              <div class="form-group">
+                <label>Phone (optional)</label>
+                <input id="f-phone" placeholder="e.g. +260 97 000 0000">
+              </div>
+              <div class="form-group">
+                <label>Loan Amount (K)</label>
+                <div class="input-prefix"><span>K</span><input id="f-amount" type="number" min="1" placeholder="5000" oninput="updateCalc()"></div>
+              </div>
+              <div class="form-group">
+                <label>Interest Rate (%)</label>
+                <div class="input-prefix"><input class="suffix-input" id="f-interest" type="number" min="0" step="0.1" placeholder="e.g. 20" oninput="updateCalc()"><span style="left:auto;right:12px;">%</span></div>
+              </div>
+              <div class="form-group">
+                <label>Repayment Period (weeks)</label>
+                <input id="f-months" type="number" min="1" placeholder="e.g. 4" oninput="updateCalc()">
+              </div>
+              <div class="form-group">
+                <label>Start Date</label>
+                <input id="f-date" type="date">
+              </div>
+              <div class="form-group full">
+                <label>Notes (optional)</label>
+                <input id="f-notes" placeholder="Loan purpose or additional notes">
+              </div>
+              <div class="form-group">
+                <label>Borrower Photo</label>
+                <div class="photo-upload-box" id="borrowerBox">
+                  <input type="file" accept="image/*" onchange="previewPhoto(this,'borrowerPreview','borrowerBox')">
+                  <div class="photo-placeholder">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+                    Tap to add borrower photo
+                  </div>
+                  <div class="photo-preview" id="borrowerPreview">
+                    <img id="borrowerImg" src="" alt="Borrower">
+                    <button class="photo-remove" type="button" onclick="removePhoto('borrowerPreview','borrowerBox',event)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Signed Contract</label>
+                <div class="photo-upload-box" id="contractBox">
+                  <input type="file" accept="image/*" onchange="previewPhoto(this,'contractPreview','contractBox')">
+                  <div class="photo-placeholder">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                    Tap to photograph contract
+                  </div>
+                  <div class="photo-preview contract-preview" id="contractPreview">
+                    <img id="contractImg" src="" alt="Contract">
+                    <button class="photo-remove" type="button" onclick="removePhoto('contractPreview','contractBox',event)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="loan-summary" id="loanCalc" style="display:none;">
+              <div class="summary-item"><div class="summary-label">Interest Amount</div><div class="summary-val c-amber" id="calc-interest">K0</div></div>
+              <div class="summary-item"><div class="summary-label">Total Repayable</div><div class="summary-val c-accent" id="calc-total">K0</div></div>
+              <div class="summary-item"><div class="summary-label">Weekly Payment</div><div class="summary-val c-green" id="calc-monthly">K0</div></div>
+            </div>
+            <div class="form-footer">
+              <button class="btn btn-primary" onclick="createLoan()">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Create Loan
+              </button>
+              <button class="btn btn-ghost" onclick="clearForm()">Clear</button>
+            </div>
+          </div>
+        </div>
+        <!-- Loans table -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">All Loans</div>
+            <div class="search-bar" style="margin:0;width:260px;">
+              <div class="search-input">
+                <div class="search-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
+                <input type="text" placeholder="Search..." oninput="renderLoans(this.value)" style="margin:0;">
+              </div>
+            </div>
+          </div>
+          <div class="card-body" style="padding:0;">
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Client</th><th>Amount</th><th>Interest</th><th>Total</th><th>Paid</th><th>Progress</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+                <tbody id="loansTable"></tbody>
+              </table>
+              <div class="empty" id="loansEmpty" style="display:none;">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                <p>No loans found</p><small>Create a loan using the form above</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Payments -->
+    <div class="panel" id="panel-payments">
+      <div class="topbar">
+        <div><div class="page-title">Payments</div><div class="page-sub">All recorded payments</div></div>
+      </div>
+      <div class="content">
+        <div class="card">
+          <div class="card-body" style="padding:0;">
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Client</th><th>Loan ID</th><th>Amount Paid</th><th>Date</th><th>Note</th></tr></thead>
+                <tbody id="paymentsTable"></tbody>
+              </table>
+              <div class="empty" id="paymentsEmpty" style="display:none;">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                <p>No payments recorded</p><small>Record payments on individual loans</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reports -->
+    <div class="panel" id="panel-reports">
+      <div class="topbar">
+        <div><div class="page-title">Reports</div><div class="page-sub">Portfolio overview</div></div>
+        <div class="topbar-right">
+          <button class="btn btn-ghost" onclick="exportCSV()">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export CSV
+          </button>
+        </div>
+      </div>
+      <div class="content">
+        <div class="stats" id="reportStats"></div>
+        <div class="reports-grid">
+          <div class="card">
+            <div class="card-header"><div class="card-title">Loans by Status</div></div>
+            <div class="card-body" id="statusChart"></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><div class="card-title">Top Borrowers</div></div>
+            <div class="card-body" id="topBorrowers"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Bottom nav (mobile) -->
+<nav class="bottom-nav">
+  <div class="bottom-nav-inner">
+    <button class="bnav-item active" onclick="showPanel('dashboard')">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Home
+    </button>
+    <button class="bnav-item" onclick="showPanel('clients')">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Clients
+    </button>
+    <button class="bnav-item" onclick="showPanel('loans')">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      Loans
+    </button>
+    <button class="bnav-item" onclick="showPanel('payments')">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+      Payments
+    </button>
+    <button class="bnav-item" onclick="showPanel('reports')">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Reports
+    </button>
+  </div>
+</nav>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <img id="lightboxImg" src="" alt="">
+</div>
+
+<!-- Loan Detail Modal -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal" style="width:520px;max-height:90vh;overflow-y:auto;">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;">
+      <div>
+        <div class="modal-title" id="detailName">—</div>
+        <div class="modal-sub" id="detailSub" style="margin-bottom:0;">—</div>
+      </div>
+      <button class="btn btn-ghost" style="padding:6px 10px;font-size:12px;" onclick="closeDetailModal()">✕</button>
+    </div>
+    <div id="detailBody"></div>
+    <div class="detail-photos" id="detailPhotos"></div>
+    <div class="modal-footer" style="margin-top:20px;">
+      <button class="btn btn-ghost" onclick="closeDetailModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Payment Modal -->
+<div class="modal-overlay" id="payModal">
+  <div class="modal">
+    <div class="modal-title">Record Payment</div>
+    <div class="modal-sub" id="payModalSub">Add a payment for this loan</div>
+    <div class="form-group" style="margin-bottom:12px;">
+      <label>Payment Amount (K)</label>
+      <div class="input-prefix"><span>K</span><input id="pay-amount" type="number" min="1" placeholder="Amount"></div>
+    </div>
+    <div class="form-group" style="margin-bottom:12px;">
+      <label>Payment Date</label>
+      <input id="pay-date" type="date">
+    </div>
+    <div class="form-group">
+      <label>Note (optional)</label>
+      <input id="pay-note" placeholder="e.g. Monthly installment">
+    </div>
+    <div id="pay-history" style="margin-top:16px;display:none;">
+      <div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px;">Payment History</div>
+      <div class="payment-list" id="pay-hist-list"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-success" onclick="recordPayment()">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20,6 9,17 4,12"/></svg>
+        Record Payment
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+let loans = JSON.parse(localStorage.getItem('lf_loans')) || [];
+let payments = JSON.parse(localStorage.getItem('lf_payments')) || [];
+let activeModal = null;
+
+// Panel navigation
+function showPanel(id) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelectorAll('.bnav-item').forEach(n => n.classList.remove('active'));
+  const navItems = document.querySelectorAll('.nav-item');
+  const bnavItems = document.querySelectorAll('.bnav-item');
+  const panelMap = {dashboard:0,clients:1,loans:2,payments:3,reports:4};
+  if(panelMap[id] !== undefined) {
+    navItems[panelMap[id]].classList.add('active');
+    bnavItems[panelMap[id]].classList.add('active');
+  }
+  if(id==='dashboard') renderDashboard();
+  if(id==='clients') renderClients();
+  if(id==='loans') renderLoans();
+  if(id==='payments') renderPayments();
+  if(id==='reports') renderReports();
+}
+
+// Save to localStorage
+function save() {
+  localStorage.setItem('lf_loans', JSON.stringify(loans));
+  localStorage.setItem('lf_payments', JSON.stringify(payments));
+}
+
+// Profile picture
+function uploadProfilePic(input) {
+  const file = input.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const data = e.target.result;
+    localStorage.setItem('lf_profile_pic', data);
+    renderProfilePic();
+  };
+  reader.readAsDataURL(file);
+}
+function renderProfilePic() {
+  const data = localStorage.getItem('lf_profile_pic');
+  const avatar = document.getElementById('sidebarAvatar');
+  if(data) {
+    avatar.innerHTML = `<img src="${data}" alt="Profile" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+    avatar.classList.add('has-photo');
+  } else {
+    avatar.innerHTML = 'A';
+    avatar.classList.remove('has-photo');
+  }
+}
+
+// Photo preview helpers
+function previewPhoto(input, previewId, boxId) {
+  const file = input.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const preview = document.getElementById(previewId);
+    const img = preview.querySelector('img');
+    img.src = e.target.result;
+    preview.style.display = 'block';
+    document.querySelector(`#${boxId} .photo-placeholder`).style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+function removePhoto(previewId, boxId, e) {
+  e.stopPropagation();
+  const preview = document.getElementById(previewId);
+  const img = preview.querySelector('img');
+  img.src = '';
+  preview.style.display = 'none';
+  document.querySelector(`#${boxId} .photo-placeholder`).style.display = 'flex';
+  const fileInput = document.querySelector(`#${boxId} input[type=file]`);
+  fileInput.value = '';
+}
+function getPhotoData(imgId) {
+  const img = document.getElementById(imgId);
+  return img && img.src && img.src.startsWith('data:') ? img.src : null;
+}
+
+// Formatting helpers
+const fmt = n => 'K' + Number(n).toLocaleString('en-US', {minimumFractionDigits:2,maximumFractionDigits:2});
+const fmtDate = d => d ? new Date(d).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) : '—';
+
+function getLoanPaid(loanId) {
+  return payments.filter(p => p.loanId === loanId).reduce((s,p) => s + p.amount, 0);
+}
+
+function getLoanStatus(loan) {
+  const paid = getLoanPaid(loan.id);
+  if(paid >= loan.total) return 'paid';
+  if(paid > 0) return 'partial';
+  if(loan.date) {
+    const weeks = loan.months || 1;
+    const due = new Date(loan.date);
+    due.setDate(due.getDate() + weeks * 7);
+    if(new Date() > due) return 'overdue';
+  }
+  return 'active';
+}
+
+const statusBadge = {
+  active:'<span class="badge badge-active">Active</span>',
+  partial:'<span class="badge badge-partial">Partial</span>',
+  paid:'<span class="badge badge-paid">Paid</span>',
+  overdue:'<span class="badge badge-overdue">Overdue</span>'
+};
+
+// Loan calculator
+function updateCalc() {
+  const a = parseFloat(document.getElementById('f-amount').value);
+  const r = parseFloat(document.getElementById('f-interest').value);
+  const w = parseFloat(document.getElementById('f-months').value);
+  const wrap = document.getElementById('loanCalc');
+  if(!a || !r) { wrap.style.display='none'; return; }
+  const interest = a * r / 100;
+  const total = a + interest;
+  const weekly = w ? total / w : total;
+  document.getElementById('calc-interest').textContent = fmt(interest);
+  document.getElementById('calc-total').textContent = fmt(total);
+  document.getElementById('calc-monthly').textContent = w ? fmt(weekly) + '/wk' : '—';
+  wrap.style.display = 'grid';
+}
+
+function showError(msg) {
+  const el = document.getElementById('formError');
+  el.textContent = msg;
+  el.style.display = 'block';
+  setTimeout(() => el.style.display='none', 3000);
+}
+
+function createLoan() {
+  const client = document.getElementById('f-client').value.trim();
+  const amount = parseFloat(document.getElementById('f-amount').value);
+  const interest = parseFloat(document.getElementById('f-interest').value);
+  const weeks = parseInt(document.getElementById('f-months').value);
+  const date = document.getElementById('f-date').value;
+  const phone = document.getElementById('f-phone').value.trim();
+  const notes = document.getElementById('f-notes').value.trim();
+  if(!client) { showError('Please enter a client name.'); return; }
+  if(!amount || amount <= 0) { showError('Please enter a valid loan amount.'); return; }
+  if(interest === undefined || isNaN(interest) || interest < 0) { showError('Please enter a valid interest rate.'); return; }
+  if(!weeks || weeks <= 0) { showError('Please enter the repayment period in weeks.'); return; }
+  const interestAmt = amount * interest / 100;
+  const total = amount + interestAmt;
+  const borrowerPhoto = getPhotoData('borrowerImg');
+  const contractPhoto = getPhotoData('contractImg');
+  const loan = {
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2,5),
+    client, phone, amount, interest, interestAmt, total, months: weeks,
+    date: date || new Date().toISOString().split('T')[0], notes,
+    borrowerPhoto, contractPhoto,
+    createdAt: Date.now()
+  };
+  loans.unshift(loan);
+  save();
+  clearForm();
+  renderLoans();
+  renderDashboard();
+}
+
+function clearForm() {
+  ['f-client','f-phone','f-amount','f-interest','f-months','f-date','f-notes'].forEach(id => document.getElementById(id).value='');
+  document.getElementById('loanCalc').style.display = 'none';
+  removePhoto('borrowerPreview','borrowerBox',{stopPropagation:()=>{}});
+  removePhoto('contractPreview','contractBox',{stopPropagation:()=>{}});
+}
+
+function deleteLoan(id) {
+  if(!confirm('Delete this loan and all its payments? This cannot be undone.')) return;
+  loans = loans.filter(l => l.id !== id);
+  payments = payments.filter(p => p.loanId !== id);
+  save();
+  renderLoans();
+  renderDashboard();
+}
+
+// Payment modal
+function openPayModal(loanId) {
+  activeModal = loanId;
+  const loan = loans.find(l => l.id === loanId);
+  const paid = getLoanPaid(loanId);
+  const remaining = Math.max(0, loan.total - paid);
+  document.getElementById('payModalSub').textContent = `${loan.client} — Remaining: ${fmt(remaining)}`;
+  document.getElementById('pay-amount').value = '';
+  document.getElementById('pay-date').value = new Date().toISOString().split('T')[0];
+  document.getElementById('pay-note').value = '';
+  const histPayments = payments.filter(p => p.loanId === loanId).reverse();
+  const histWrap = document.getElementById('pay-history');
+  const histList = document.getElementById('pay-hist-list');
+  if(histPayments.length) {
+    histList.innerHTML = histPayments.map(p =>
+      `<div class="payment-item"><div><div class="payment-amount">${fmt(p.amount)}</div><div class="payment-date">${p.note||'Payment'}</div></div><div class="payment-date">${fmtDate(p.date)}</div></div>`
+    ).join('');
+    histWrap.style.display = 'block';
+  } else { histWrap.style.display = 'none'; }
+  document.getElementById('payModal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('payModal').classList.remove('open');
+  activeModal = null;
+}
+
+function recordPayment() {
+  const amount = parseFloat(document.getElementById('pay-amount').value);
+  const date = document.getElementById('pay-date').value;
+  const note = document.getElementById('pay-note').value.trim();
+  if(!amount || amount <= 0) { alert('Enter a valid payment amount.'); return; }
+  const loan = loans.find(l => l.id === activeModal);
+  const paid = getLoanPaid(activeModal);
+  if(amount > loan.total - paid + 0.01) {
+    if(!confirm('Payment exceeds remaining balance. Continue?')) return;
+  }
+  payments.push({ id: Date.now().toString(36), loanId: activeModal, amount, date: date||new Date().toISOString().split('T')[0], note });
+  save();
+  closeModal();
+  renderLoans();
+  renderDashboard();
+  renderPayments();
+}
+
+// Progress bar HTML
+function progressBar(paid, total) {
+  const pct = Math.min(100, Math.round((paid / total) * 100));
+  const color = pct >= 100 ? 'var(--green)' : pct > 0 ? 'var(--accent)' : 'var(--muted)';
+  return `<div class="progress-wrap"><div class="progress-bg"><div class="progress-fill" style="width:${pct}%;background:${color}"></div></div><div class="progress-text">${pct}%</div></div>`;
+}
+
+// Render dashboard
+function renderDashboard() {
+  document.getElementById('dash-date').textContent = new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  const totalAmount = loans.reduce((s,l) => s + l.amount, 0);
+  const totalDue = loans.reduce((s,l) => s + l.total, 0);
+  const totalPaid = payments.reduce((s,p) => s + p.amount, 0);
+  const outstanding = Math.max(0, totalDue - totalPaid);
+  const clients = new Set(loans.map(l => l.client)).size;
+  document.getElementById('dashStats').innerHTML = `
+    <div class="stat-card"><div class="stat-label">Total Loans</div><div class="stat-value c-accent">${loans.length}</div><div class="stat-change">${clients} unique clients</div></div>
+    <div class="stat-card"><div class="stat-label">Disbursed</div><div class="stat-value">${fmt(totalAmount)}</div><div class="stat-change">Principal lent out</div></div>
+    <div class="stat-card"><div class="stat-label">Collected</div><div class="stat-value c-green">${fmt(totalPaid)}</div><div class="stat-change up">${totalDue > 0 ? Math.round((totalPaid/totalDue)*100) : 0}% of total due</div></div>
+    <div class="stat-card"><div class="stat-label">Outstanding</div><div class="stat-value c-amber">${fmt(outstanding)}</div><div class="stat-change down">Remaining balance</div></div>
+  `;
+  const recent = loans.slice(0,5);
+  const tbody = document.getElementById('dashTable');
+  const empty = document.getElementById('dashEmpty');
+  if(!recent.length) { tbody.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display = 'none';
+  tbody.innerHTML = recent.map(l => {
+    const paid = getLoanPaid(l.id);
+    const status = getLoanStatus(l);
+    return `<tr>
+      <td><div class="td-name">${l.client}</div><div class="td-sub">${fmtDate(l.date)}</div></td>
+      <td>${fmt(l.amount)}</td>
+      <td>${l.interest}%</td>
+      <td>${fmt(l.total)}</td>
+      <td>${progressBar(paid, l.total)}</td>
+      <td>${statusBadge[status]}</td>
+    </tr>`;
+  }).join('');
+}
+
+// Render loans
+function renderLoans(search='') {
+  const q = search.toLowerCase();
+  const filtered = loans.filter(l => !q || l.client.toLowerCase().includes(q));
+  const tbody = document.getElementById('loansTable');
+  const empty = document.getElementById('loansEmpty');
+  if(!filtered.length) { tbody.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display = 'none';
+  tbody.innerHTML = filtered.map(l => {
+    const paid = getLoanPaid(l.id);
+    const status = getLoanStatus(l);
+    return `<tr>
+      <td><div class="td-name">${l.client}</div>${l.phone?`<div class="td-sub">${l.phone}</div>`:''}</td>
+      <td>${fmt(l.amount)}</td>
+      <td>${l.interest}%</td>
+      <td>${fmt(l.total)}</td>
+      <td class="c-green">${fmt(paid)}</td>
+      <td>${progressBar(paid, l.total)}</td>
+      <td>${statusBadge[status]}</td>
+      <td><div class="td-sub">${fmtDate(l.date)}</div><div class="td-sub">${l.months}wk</div></td>
+      <td><div class="actions">
+        <button class="btn btn-ghost" style="padding:6px 10px;font-size:12px;" onclick="openDetailModal('${l.id}')">View</button>
+        <button class="btn btn-success" style="padding:6px 10px;font-size:12px;" onclick="openPayModal('${l.id}')">Pay</button>
+        <button class="btn btn-danger" style="padding:6px 10px;font-size:12px;" onclick="deleteLoan('${l.id}')">Del</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+  // Update client datalist
+  const dl = document.getElementById('clientSuggest');
+  const names = [...new Set(loans.map(l => l.client))];
+  dl.innerHTML = names.map(n => `<option value="${n}">`).join('');
+}
+
+// Render clients
+function renderClients(search='') {
+  const q = search.toLowerCase();
+  const clientMap = {};
+  loans.forEach(l => {
+    if(!clientMap[l.client]) clientMap[l.client] = {loans:0,borrowed:0,due:0,lastDate:''};
+    const c = clientMap[l.client];
+    c.loans++;
+    c.borrowed += l.amount;
+    c.due += l.total;
+    if(!c.lastDate || l.date > c.lastDate) c.lastDate = l.date;
+  });
+  const clients = Object.entries(clientMap).filter(([n]) => !q || n.toLowerCase().includes(q));
+  const tbody = document.getElementById('clientsTable');
+  const empty = document.getElementById('clientsEmpty');
+  if(!clients.length) { tbody.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display = 'none';
+  tbody.innerHTML = clients.map(([name, c]) => {
+    const paid = loans.filter(l => l.client===name).reduce((s,l) => s + getLoanPaid(l.id), 0);
+    const outstanding = Math.max(0, c.due - paid);
+    const initials = name.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+    const latestLoan = loans.filter(l=>l.client===name).sort((a,b)=>b.createdAt-a.createdAt)[0];
+    const photoHtml = latestLoan?.borrowerPhoto
+      ? `<img src="${latestLoan.borrowerPhoto}" alt="${name}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;border:1.5px solid var(--accent);flex-shrink:0;">`
+      : `<div class="avatar" style="width:32px;height:32px;font-size:12px;flex-shrink:0;">${initials}</div>`;
+    return `<tr>
+      <td><div style="display:flex;align-items:center;gap:10px;">${photoHtml}<div class="td-name">${name}</div></div></td>
+      <td>${c.loans}</td>
+      <td>${fmt(c.borrowed)}</td>
+      <td class="c-green">${fmt(paid)}</td>
+      <td class="${outstanding>0?'c-amber':''}">${fmt(outstanding)}</td>
+      <td><div class="td-sub">${fmtDate(c.lastDate)}</div></td>
+    </tr>`;
+  }).join('');
+}
+
+// Render payments
+function renderPayments() {
+  const tbody = document.getElementById('paymentsTable');
+  const empty = document.getElementById('paymentsEmpty');
+  const sorted = [...payments].sort((a,b) => b.id.localeCompare(a.id));
+  if(!sorted.length) { tbody.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display = 'none';
+  tbody.innerHTML = sorted.map(p => {
+    const loan = loans.find(l => l.id === p.loanId);
+    return `<tr>
+      <td class="td-name">${loan ? loan.client : 'Unknown'}</td>
+      <td><span class="tag">${p.loanId}</span></td>
+      <td class="c-green">${fmt(p.amount)}</td>
+      <td>${fmtDate(p.date)}</td>
+      <td style="color:var(--muted);">${p.note||'—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+// Render reports
+function renderReports() {
+  const totalAmount = loans.reduce((s,l) => s + l.amount, 0);
+  const totalDue = loans.reduce((s,l) => s + l.total, 0);
+  const totalPaid = payments.reduce((s,p) => s + p.amount, 0);
+  const totalInterest = loans.reduce((s,l) => s + l.interestAmt, 0);
+  document.getElementById('reportStats').innerHTML = `
+    <div class="stat-card"><div class="stat-label">Portfolio Size</div><div class="stat-value">${fmt(totalAmount)}</div></div>
+    <div class="stat-card"><div class="stat-label">Total Interest</div><div class="stat-value c-accent">${fmt(totalInterest)}</div></div>
+    <div class="stat-card"><div class="stat-label">Total Collected</div><div class="stat-value c-green">${fmt(totalPaid)}</div></div>
+    <div class="stat-card"><div class="stat-label">Recovery Rate</div><div class="stat-value">${totalDue>0?Math.round((totalPaid/totalDue)*100):0}%</div></div>
+  `;
+  // Status chart
+  const statuses = {active:0,partial:0,paid:0,overdue:0};
+  loans.forEach(l => statuses[getLoanStatus(l)]++);
+  const total = loans.length || 1;
+  const statusLabels = {active:'Active',partial:'Partial',paid:'Paid',overdue:'Overdue'};
+  const statusColors = {active:'var(--green)',partial:'var(--amber)',paid:'var(--accent)',overdue:'var(--red)'};
+  document.getElementById('statusChart').innerHTML = loans.length
+    ? `<div class="chart-bar-wrap">${Object.entries(statuses).map(([k,v])=>`
+        <div class="chart-bar-item">
+          <div class="chart-bar-label">${statusLabels[k]}</div>
+          <div class="chart-bar-bg"><div class="chart-bar-fill" style="width:${Math.round((v/total)*100)}%;background:${statusColors[k]}"></div></div>
+          <div class="chart-bar-val" style="color:${statusColors[k]}">${v}</div>
+        </div>`).join('')}
+      </div>`
+    : '<div class="empty" style="padding:20px"><p>No data yet</p></div>';
+  // Top borrowers
+  const borrowerMap = {};
+  loans.forEach(l => { borrowerMap[l.client] = (borrowerMap[l.client]||0) + l.amount; });
+  const top = Object.entries(borrowerMap).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const max = top[0]?.[1] || 1;
+  document.getElementById('topBorrowers').innerHTML = top.length
+    ? `<div class="chart-bar-wrap">${top.map(([n,v])=>`
+        <div class="chart-bar-item">
+          <div class="chart-bar-label" style="font-weight:500;color:var(--text);">${n.split(' ')[0]}</div>
+          <div class="chart-bar-bg"><div class="chart-bar-fill" style="width:${Math.round((v/max)*100)}%"></div></div>
+          <div class="chart-bar-val">${fmt(v)}</div>
+        </div>`).join('')}
+      </div>`
+    : '<div class="empty" style="padding:20px"><p>No data yet</p></div>';
+}
+
+// Export CSV
+function exportCSV() {
+  const headers = ['ID','Client','Phone','Amount','Interest%','Interest Amount','Total','Paid','Outstanding','Status','Date','Weeks','Notes'];
+  const rows = loans.map(l => {
+    const paid = getLoanPaid(l.id);
+    const outstanding = Math.max(0, l.total - paid);
+    const status = getLoanStatus(l);
+    return [l.id,l.client,l.phone||'',l.amount,l.interest,l.interestAmt.toFixed(2),l.total.toFixed(2),paid.toFixed(2),outstanding.toFixed(2),status,l.date,l.months,l.notes||''].join(',');
+  });
+  const csv = [headers.join(','), ...rows].join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv,' + encodeURIComponent(csv);
+  a.download = 'loanflow-export-' + new Date().toISOString().split('T')[0] + '.csv';
+  a.click();
+}
+
+// Loan detail modal
+function openDetailModal(loanId) {
+  const loan = loans.find(l => l.id === loanId);
+  if(!loan) return;
+  const paid = getLoanPaid(loanId);
+  const status = getLoanStatus(loanId);
+  const remaining = Math.max(0, loan.total - paid);
+  document.getElementById('detailName').textContent = loan.client;
+  document.getElementById('detailSub').textContent = `${loan.phone || 'No phone'} · ${fmtDate(loan.date)} · ${loan.months}wk`;
+  document.getElementById('detailBody').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px;">
+      <div class="stat-card" style="padding:12px 14px;"><div class="stat-label" style="font-size:10px;">Loan Amount</div><div style="font-size:18px;font-weight:700;">${fmt(loan.amount)}</div></div>
+      <div class="stat-card" style="padding:12px 14px;"><div class="stat-label" style="font-size:10px;">Interest (${loan.interest}%)</div><div style="font-size:18px;font-weight:700;color:var(--amber);">${fmt(loan.interestAmt)}</div></div>
+      <div class="stat-card" style="padding:12px 14px;"><div class="stat-label" style="font-size:10px;">Total Repayable</div><div style="font-size:18px;font-weight:700;color:var(--accent);">${fmt(loan.total)}</div></div>
+      <div class="stat-card" style="padding:12px 14px;"><div class="stat-label" style="font-size:10px;">Remaining</div><div style="font-size:18px;font-weight:700;color:var(--red);">${fmt(remaining)}</div></div>
+    </div>
+    ${loan.notes ? `<div style="margin-top:10px;padding:10px 14px;background:var(--surface2);border-radius:8px;font-size:13px;color:var(--muted2);">${loan.notes}</div>` : ''}
+  `;
+  const photos = [];
+  if(loan.borrowerPhoto) photos.push(`<div class="detail-photo-card"><div class="detail-photo-label">Borrower</div><img src="${loan.borrowerPhoto}" alt="Borrower" onclick="openLightbox('${loan.borrowerPhoto}')"></div>`);
+  else photos.push(`<div class="detail-photo-card"><div class="detail-photo-label">Borrower</div><div class="no-photo">No photo added</div></div>`);
+  if(loan.contractPhoto) photos.push(`<div class="detail-photo-card contract"><div class="detail-photo-label">Signed Contract</div><img src="${loan.contractPhoto}" alt="Contract" onclick="openLightbox('${loan.contractPhoto}')"></div>`);
+  else photos.push(`<div class="detail-photo-card contract"><div class="detail-photo-label">Signed Contract</div><div class="no-photo">No contract photo</div></div>`);
+  document.getElementById('detailPhotos').innerHTML = photos.join('');
+  document.getElementById('detailModal').classList.add('open');
+}
+function closeDetailModal() {
+  document.getElementById('detailModal').classList.remove('open');
+}
+
+// Lightbox
+function openLightbox(src) {
+  document.getElementById('lightboxImg').src = src;
+  document.getElementById('lightbox').classList.add('open');
+}
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+  document.getElementById('lightboxImg').src = '';
+}
+
+// Close modal on overlay click
+document.getElementById('payModal').addEventListener('click', function(e){ if(e.target===this) closeModal(); });
+document.getElementById('detailModal').addEventListener('click', function(e){ if(e.target===this) closeDetailModal(); });
+
+// Set default date
+document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
+
+// Initial render
+renderProfilePic();
+renderDashboard();
+</script>
+</body>
+</html>
