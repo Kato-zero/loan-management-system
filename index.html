@@ -2,7 +2,15 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="LoanFlow">
+<meta name="theme-color" content="#0c0f1a">
+<meta name="description" content="Loan management system — track loans, payments and clients">
+<link id="pwa-manifest" rel="manifest">
+<link rel="apple-touch-icon" id="apple-touch-icon">
 <title>LoanFlow — Loan Management</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -223,11 +231,25 @@ td{padding:14px 16px;font-size:13.5px;}
 .notif-btn{position:relative;}
 
 /* Bottom nav for mobile */
-.bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);z-index:50;padding:0 4px;}
+.bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);z-index:50;padding:0 4px;padding-bottom:env(safe-area-inset-bottom);}
 .bottom-nav-inner{display:flex;justify-content:space-around;}
 .bnav-item{display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 8px;flex:1;background:none;border:none;color:var(--muted2);cursor:pointer;font-size:10px;font-family:inherit;transition:color 0.15s;}
 .bnav-item svg{width:22px;height:22px;}
 .bnav-item.active{color:var(--accent);}
+
+/* PWA install banner */
+.install-banner{display:none;position:fixed;bottom:72px;left:12px;right:12px;background:var(--surface);border:1px solid var(--accent);border-radius:14px;padding:14px 16px;z-index:60;box-shadow:0 8px 32px rgba(0,0,0,0.4);}
+.install-banner.show{display:flex;align-items:center;gap:12px;}
+.install-banner-icon{width:40px;height:40px;background:var(--accent);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.install-banner-icon svg{width:22px;height:22px;fill:none;stroke:#000;stroke-width:2.5;}
+.install-banner-text{flex:1;}
+.install-banner-title{font-size:13px;font-weight:600;}
+.install-banner-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+.install-banner-actions{display:flex;gap:8px;flex-shrink:0;}
+
+/* Splash/offline toast */
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 18px;font-size:13px;z-index:300;white-space:nowrap;transition:opacity 0.3s;}
+.toast.hide{opacity:0;pointer-events:none;}
 
 @media(max-width:900px){
   .layout{grid-template-columns:1fr;}
@@ -236,9 +258,9 @@ td{padding:14px 16px;font-size:13.5px;}
   .form-grid{grid-template-columns:1fr;}
   .reports-grid{grid-template-columns:1fr;}
   .bottom-nav{display:block;}
-  .main{padding-bottom:70px;}
+  .main{padding-bottom:calc(70px + env(safe-area-inset-bottom));}
   .content{padding:16px;}
-  .topbar{padding:14px 16px;}
+  .topbar{padding:14px 16px;padding-top:calc(14px + env(safe-area-inset-top));}
   .page-title{font-size:17px;}
   .stat-value{font-size:20px;}
   .card-header{flex-wrap:wrap;gap:8px;}
@@ -562,7 +584,23 @@ td{padding:14px 16px;font-size:13.5px;}
   </div>
 </nav>
 
-<!-- Lightbox -->
+<!-- PWA Install Banner -->
+<div class="install-banner" id="installBanner">
+  <div class="install-banner-icon">
+    <svg viewBox="0 0 24 24"><path d="M12 2L2 7v10l10 5 10-5V7L12 2z"/></svg>
+  </div>
+  <div class="install-banner-text">
+    <div class="install-banner-title">Install LoanFlow</div>
+    <div class="install-banner-sub">Add to home screen for offline access</div>
+  </div>
+  <div class="install-banner-actions">
+    <button class="btn btn-ghost" style="padding:7px 12px;font-size:12px;" onclick="dismissInstall()">Later</button>
+    <button class="btn btn-primary" style="padding:7px 14px;font-size:12px;" onclick="triggerInstall()">Install</button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast hide" id="toast"></div>
 <div class="lightbox" id="lightbox" onclick="closeLightbox()">
   <img id="lightboxImg" src="" alt="">
 </div>
@@ -1079,6 +1117,142 @@ document.getElementById('f-date').value = new Date().toISOString().split('T')[0]
 // Initial render
 renderProfilePic();
 renderDashboard();
+
+// ── PWA SETUP ──────────────────────────────────────────────────────────────
+
+// Toast helper
+function showToast(msg, duration=2500) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.remove('hide');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.add('hide'), duration);
+}
+
+// Generate app icon as a canvas data URL (sky-blue diamond on dark bg)
+function makeIconDataURL(size) {
+  const c = document.createElement('canvas');
+  c.width = c.height = size;
+  const ctx = c.getContext('2d');
+  // Background
+  ctx.fillStyle = '#0c0f1a';
+  ctx.roundRect(0, 0, size, size, size * 0.22);
+  ctx.fill();
+  // Accent hexagon-ish shape
+  ctx.fillStyle = '#38bdf8';
+  const cx = size / 2, cy = size / 2, r = size * 0.32;
+  ctx.beginPath();
+  for(let i = 0; i < 6; i++) {
+    const angle = (Math.PI / 3) * i - Math.PI / 6;
+    i === 0 ? ctx.moveTo(cx + r * Math.cos(angle), cy + r * Math.sin(angle))
+             : ctx.lineTo(cx + r * Math.cos(angle), cy + r * Math.sin(angle));
+  }
+  ctx.closePath();
+  ctx.fill();
+  // "L" letter
+  ctx.fillStyle = '#000';
+  ctx.font = `bold ${size * 0.3}px Inter,sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('L', cx, cy + size * 0.02);
+  return c.toDataURL('image/png');
+}
+
+// Inject web manifest dynamically as a blob
+function injectManifest() {
+  const icon192 = makeIconDataURL(192);
+  const icon512 = makeIconDataURL(512);
+  // Set apple touch icon
+  document.getElementById('apple-touch-icon').href = icon192;
+  const manifest = {
+    name: 'LoanFlow',
+    short_name: 'LoanFlow',
+    description: 'Loan management — track loans, payments and clients',
+    start_url: './',
+    display: 'standalone',
+    background_color: '#0c0f1a',
+    theme_color: '#0c0f1a',
+    orientation: 'any',
+    icons: [
+      { src: icon192, sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
+      { src: icon512, sizes: '512x512', type: 'image/png', purpose: 'any maskable' }
+    ]
+  };
+  const blob = new Blob([JSON.stringify(manifest)], {type:'application/json'});
+  document.getElementById('pwa-manifest').href = URL.createObjectURL(blob);
+}
+
+// Register service worker via blob (works from file:// and any origin)
+function registerSW() {
+  if(!('serviceWorker' in navigator)) return;
+  const swCode = `
+const CACHE = 'loanflow-v1';
+self.addEventListener('install', e => {
+  self.skipWaiting();
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(['./', self.location.href])));
+});
+self.addEventListener('activate', e => {
+  e.waitUntil(clients.claim());
+});
+self.addEventListener('fetch', e => {
+  if(e.request.method !== 'GET') return;
+  e.respondWith(
+    caches.match(e.request).then(cached => {
+      if(cached) return cached;
+      return fetch(e.request).then(res => {
+        if(res && res.status === 200) {
+          const clone = res.clone();
+          caches.open(CACHE).then(c => c.put(e.request, clone));
+        }
+        return res;
+      }).catch(() => caches.match('./'));
+    })
+  );
+});
+  `;
+  const swBlob = new Blob([swCode], {type:'application/javascript'});
+  const swURL = URL.createObjectURL(swBlob);
+  navigator.serviceWorker.register(swURL, {scope: './'})
+    .then(() => { if(!localStorage.getItem('lf_sw_notified')) { showToast('✓ App ready for offline use'); localStorage.setItem('lf_sw_notified','1'); } })
+    .catch(() => {});
+}
+
+// Install prompt handling
+let deferredInstallPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  if(!localStorage.getItem('lf_install_dismissed')) {
+    setTimeout(() => document.getElementById('installBanner').classList.add('show'), 1500);
+  }
+});
+window.addEventListener('appinstalled', () => {
+  document.getElementById('installBanner').classList.remove('show');
+  deferredInstallPrompt = null;
+  showToast('✓ LoanFlow installed!');
+});
+
+function triggerInstall() {
+  if(deferredInstallPrompt) {
+    deferredInstallPrompt.prompt();
+    deferredInstallPrompt.userChoice.then(r => {
+      if(r.outcome === 'accepted') document.getElementById('installBanner').classList.remove('show');
+      deferredInstallPrompt = null;
+    });
+  } else {
+    // iOS fallback
+    showToast('On iOS: tap Share → Add to Home Screen', 4000);
+    document.getElementById('installBanner').classList.remove('show');
+  }
+}
+function dismissInstall() {
+  document.getElementById('installBanner').classList.remove('show');
+  localStorage.setItem('lf_install_dismissed','1');
+}
+
+// Boot PWA
+injectManifest();
+registerSW();
 </script>
 </body>
 </html>
